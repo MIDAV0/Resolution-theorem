@@ -1,0 +1,1 @@
+## Resolution theorem prover in ProLog
