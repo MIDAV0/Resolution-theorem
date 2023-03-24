@@ -123,9 +123,11 @@ singlestep([Conjunction | Rest], New) :-
   New=[Newcon, Newcontwo | Rest].
 
   
-
 singlestep([Conjunction | Rest], [Conjunction | Newrest]) :-
 	singlestep(Rest, Newrest).
+
+# resolutionstep - singlestep
+# resolution - expand_and_close
 
 expand(Dis, Newdis) :-
   singlestep(Dis, Temp),
@@ -133,4 +135,51 @@ expand(Dis, Newdis) :-
 
 expand(Dis, Dis).
 
+resolution_rule(Clause1, Clause2 , New) :-
+  member(X, Clause1),
+  member(neg X, Clause2),
+  remove(X, Clause1, Temp1),
+  remove(neg X, Clause2, Temp2),
+  append(Temp1, Temp2, New).
+
+resolutionstep([], New).
+
+resolutionstep(Clauses, NewClauses) :-
+  select(Clause1, Clauses, Rest1),
+  select(Clause2, Rest1, Rest2),
+  resolution_rule(Clause1, Clause2, Resolvent),
+  NewClauses = [Resolvent | Rest2].
+
+
 clauseform(X,Y) :- expand([[X]], Y).
+
+# closed([Branch | Rest]) :-
+#   member(false, Branch),
+#   closed(Rest).
+
+# closed([Branch | Rest]) :-
+#   includes_negation(Branch, Negation),
+#   member(X, Branch),
+#   member(neg X, Branch),
+#   closed(Rest).
+
+# closed([]).
+
+expand_and_close(Tab) :-
+  member([], Tab).
+
+expand_and_close(Tab) :-
+  resolutionstep(Tab, Newtab),
+  expand_and_close(Newtab).
+
+expand_and_close(Tab) :-
+  singlestep(Tab, Newtab), !,
+  expand_and_close(Newtab).
+
+
+test(X) :-
+  if_then_else(expand_and_close([[neg X]]), yes, no).
+
+yes :- write('YES'), nl.
+
+no :- write('NO'), nl.
